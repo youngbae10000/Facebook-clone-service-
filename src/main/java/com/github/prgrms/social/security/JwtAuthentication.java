@@ -10,15 +10,17 @@ public class JwtAuthentication {
 
     public final Id<User, Long> id;
 
+    public final String name;
+
     public final Email email;
 
-    // TODO 이름 프로퍼티 추가
-
-    JwtAuthentication(Long id, Email email) {
+    JwtAuthentication(Long id, String name, Email email) {
         checkNotNull(id, "id must be provided.");
+        checkNotNull(name, "name must be provided.");
         checkNotNull(email, "email must be provided.");
 
         this.id = Id.of(User.class, id);
+        this.name = name;
         this.email = email;
     }
 

@@ -2,6 +2,7 @@ package com.github.prgrms.social.model.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.prgrms.social.security.JWT;
+import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,37 +11,52 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.time.LocalDateTime.now;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 public class User {
 
+    @ApiModelProperty(value = "PK", required = true)
     private final Long seq;
 
+    @ApiModelProperty(value = "사용자명", required = true)
+    private final String name;
+
+    @ApiModelProperty(value = "이메일", required = true)
     private final Email email;
 
-    // TODO 이름 프로퍼티 추가
-
     @JsonIgnore
+    @ApiModelProperty(hidden = true)
     private String password;
 
+    @ApiModelProperty(value = "로그인 횟수", required = true)
     private int loginCount;
 
+    @ApiModelProperty(value = "최종로그인일시")
     private LocalDateTime lastLoginAt;
 
+    @ApiModelProperty(value = "생성일시", required = true)
     private final LocalDateTime createAt;
 
-    public User(Email email, String password) {
-        this(null, email, password, 0, null, null);
+    public User(String name, Email email, String password) {
+        this(null, name, email, password, 0, null, null);
     }
 
-    public User(Long seq, Email email, String password, int loginCount, LocalDateTime lastLoginAt, LocalDateTime createAt) {
+    public User(Long seq, String name, Email email, String password, int loginCount, LocalDateTime lastLoginAt, LocalDateTime createAt) {
+        checkArgument(isNotEmpty(name), "name must be provided.");
+        checkArgument(
+                name.length() >= 1 && name.length() <= 10,
+                "name length must be between 1 and 10 characters."
+        );
         checkNotNull(email, "email must be provided.");
         checkNotNull(password, "password must be provided.");
 
         this.seq = seq;
+        this.name = name;
         this.email = email;
         this.password = password;
         this.loginCount = loginCount;
@@ -59,13 +75,16 @@ public class User {
     }
 
     public String newApiToken(JWT jwt, String[] roles) {
-        // TODO jwt 토큰에 이름 프로퍼티 추가
-        JWT.Claims claims = JWT.Claims.of(seq, email, roles);
+        JWT.Claims claims = JWT.Claims.of(seq, name, email, roles);
         return jwt.newToken(claims);
     }
 
     public Long getSeq() {
         return seq;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public Email getEmail() {
@@ -105,6 +124,7 @@ public class User {
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
                 .append("seq", seq)
+                .append("name", name)
                 .append("email", email)
                 .append("password", "[PROTECTED]")
                 .append("loginCount", loginCount)
@@ -115,6 +135,7 @@ public class User {
 
     static public class Builder {
         private Long seq;
+        private String name;
         private Email email;
         private String password;
         private int loginCount;
@@ -125,6 +146,7 @@ public class User {
 
         public Builder(User user) {
             this.seq = user.seq;
+            this.name = user.name;
             this.email = user.email;
             this.password = user.password;
             this.loginCount = user.loginCount;
@@ -134,6 +156,11 @@ public class User {
 
         public Builder seq(Long seq) {
             this.seq = seq;
+            return this;
+        }
+
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 
@@ -163,7 +190,7 @@ public class User {
         }
 
         public User build() {
-            return new User(seq, email, password, loginCount, lastLoginAt, createAt);
+            return new User(seq, name, email, password, loginCount, lastLoginAt, createAt);
         }
     }
 

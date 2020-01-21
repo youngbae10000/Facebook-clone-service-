@@ -59,8 +59,9 @@ public class JdbcPostRepository implements PostRepository {
     }
 
     @Override
-    public Optional<Post> findById(Id<Post, Long> postId) {
-        List<Post> results = jdbcTemplate.query("SELECT p.*,u.email FROM posts p JOIN users u ON p.user_seq=u.seq WHERE p.seq=?",
+    public Optional<Post> findById(Id<Post, Long> postId /*추가로 필요한 인자들을 선언*/) {
+        // TODO likesOfMe 값을 효율적으로 구하기 위해 쿼리 튜닝
+        List<Post> results = jdbcTemplate.query("SELECT p.*,u.email,u.name FROM posts p JOIN users u ON p.user_seq=u.seq WHERE p.seq=?",
                 new Object[]{postId.value()},
                 mapper
         );
@@ -68,8 +69,9 @@ public class JdbcPostRepository implements PostRepository {
     }
 
     @Override
-    public List<Post> findAll(Id<User, Long> userId) {
-        return jdbcTemplate.query("SELECT p.*,u.email FROM posts p JOIN users u ON p.user_seq=u.seq WHERE p.user_seq=? ORDER BY p.seq DESC",
+    public List<Post> findAll(Id<User, Long> userId, /*추가로 필요한 인자들을 선언*/ long offset, int limit) {
+        // TODO 페이징 처리 및 likesOfMe 값을 효율적으로 구하기 위해 쿼리 튜닝
+        return jdbcTemplate.query("SELECT p.*,u.email,u.name FROM posts p JOIN users u ON p.user_seq=u.seq WHERE p.user_seq=? ORDER BY p.seq DESC",
                 new Object[]{userId.value()},
                 mapper
         );
@@ -80,8 +82,10 @@ public class JdbcPostRepository implements PostRepository {
             .userId(Id.of(User.class, rs.getLong("user_seq")))
             .contents(rs.getString("contents"))
             .likes(rs.getInt("like_count"))
+            // TODO 해당 Post에 해대 나의 좋아요 여부
+            //.likesOfMe(rs.getBoolean("likesOfMe"))
             .comments(rs.getInt("comment_count"))
-            .writer(new Writer(new Email(rs.getString("email"))))
+            .writer(new Writer(new Email(rs.getString("email")), rs.getString("name")))
             .createAt(dateTimeOf(rs.getTimestamp("create_at")))
             .build();
 

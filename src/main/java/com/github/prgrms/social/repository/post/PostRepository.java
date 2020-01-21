@@ -13,8 +13,8 @@ public interface PostRepository {
 
     void update(Post post);
 
-    Optional<Post> findById(Id<Post, Long> postId);
+    Optional<Post> findById(Id<Post, Long> postId /*추가로 필요한 인자들을 선언*/);
 
-    List<Post> findAll(Id<User, Long> userId);
+    List<Post> findAll(Id<User, Long> userId, /*추가로 필요한 인자들을 선언*/ long offset, int limit);
 
 }

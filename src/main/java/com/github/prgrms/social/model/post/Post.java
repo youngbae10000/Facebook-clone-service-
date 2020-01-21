@@ -68,11 +68,11 @@ public class Post {
         this.contents = contents;
     }
 
-    public int incrementAngGetLikes() {
+    public int incrementAndGetLikes() {
         return ++likes;
     }
 
-    public int incrementAngGetComments() {
+    public int incrementAndGetComments() {
         return ++comments;
     }
 

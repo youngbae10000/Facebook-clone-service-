@@ -44,7 +44,7 @@ public final class JWT {
             builder.withExpiresAt(new Date(now.getTime() + expirySeconds * 1_000L));
         }
         builder.withClaim("userKey", claims.userKey);
-        // TODO 이름 필드 추가
+        builder.withClaim("name", claims.name);
         builder.withClaim("email", claims.email.getAddress());
         builder.withArrayClaim("roles", claims.roles);
         return builder.sign(algorithm);
@@ -83,7 +83,7 @@ public final class JWT {
 
     static public class Claims {
         Long userKey;
-        // TODO 이름 프로퍼티 추가
+        String name;
         Email email;
         String[] roles;
         Date iat;
@@ -95,7 +95,9 @@ public final class JWT {
             Claim userKey = decodedJWT.getClaim("userKey");
             if (!userKey.isNull())
                 this.userKey = userKey.asLong();
-            // TODO 이름 프로퍼티 처리
+            Claim name = decodedJWT.getClaim("name");
+            if (!name.isNull())
+                this.name = name.asString();
             Claim email = decodedJWT.getClaim("email");
             if (!email.isNull())
                 this.email = new Email(email.asString());
@@ -106,9 +108,10 @@ public final class JWT {
             this.exp = decodedJWT.getExpiresAt();
         }
 
-        public static Claims of(long userKey, Email email, String[] roles) {
+        public static Claims of(long userKey, String name, Email email, String[] roles) {
             Claims claims = new Claims();
             claims.userKey = userKey;
+            claims.name = name;
             claims.email = email;
             claims.roles = roles;
             return claims;
@@ -134,6 +137,7 @@ public final class JWT {
         public String toString() {
             return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
                     .append("userKey", userKey)
+                    .append("name", name)
                     .append("email", email)
                     .append("roles", Arrays.toString(roles))
                     .append("iat", iat)

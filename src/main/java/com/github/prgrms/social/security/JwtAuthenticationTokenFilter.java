@@ -25,7 +25,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 public class JwtAuthenticationTokenFilter extends GenericFilterBean {
 
@@ -57,14 +59,13 @@ public class JwtAuthenticationTokenFilter extends GenericFilterBean {
                     }
 
                     Long userKey = claims.userKey;
+                    String name = claims.name;
                     Email email = claims.email;
-                    // TODO 이름을 JWT 토큰에서 가져와보자
-
                     List<GrantedAuthority> authorities = obtainAuthorities(claims);
 
-                    if (userKey != null && email != null && authorities.size() > 0) {
+                    if (nonNull(userKey) && isNotEmpty(name) && nonNull(email) && authorities.size() > 0) {
                         JwtAuthenticationToken authentication =
-                                new JwtAuthenticationToken(new JwtAuthentication(userKey, email), null, authorities);
+                                new JwtAuthenticationToken(new JwtAuthentication(userKey, name, email), null, authorities);
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                     }

@@ -39,7 +39,7 @@ class PostServiceTest {
     @Test
     @Order(1)
     void 포스트를_작성한다() {
-        Writer writer = new Writer(new Email("test00@gmail.com"));
+        Writer writer = new Writer(new Email("test00@gmail.com"), "test");
         String contents = randomAlphabetic(40);
         Post post = postService.write(new Post(userId, writer, contents));
         assertThat(post, is(notNullValue()));
@@ -63,7 +63,7 @@ class PostServiceTest {
     @Test
     @Order(3)
     void 포스트_목록을_조회한다() {
-        List<Post> posts = postService.findAll(userId);
+        List<Post> posts = postService.findAll(userId, 0, 20);
         assertThat(posts, is(notNullValue()));
         assertThat(posts.size(), is(4));
     }

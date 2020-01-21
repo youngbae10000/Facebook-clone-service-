@@ -37,20 +37,27 @@ public class PostService {
         return post;
     }
 
-    @Transactional(readOnly = true)
-    public Optional<Post> findById(Id<Post, Long> postId) {
-        checkNotNull(postId, "postId must be provided.");
+    @Transactional
+    public Optional<Post> like(/*필요한 인자들을 선언*/) {
+        // TODO PostLikeRepository를 구현하고, 포스트 좋아요 서비스를 구현하세요.
+        return Optional.empty();
+    }
 
+    @Transactional(readOnly = true)
+    public Optional<Post> findById(Id<Post, Long> postId /*추가로 필요한 인자들을 선언*/) {
+        checkNotNull(postId, "postId must be provided.");
+        // TODO likesOfMe를 효율적으로 구하기 위해 변경 필요
         return postRepository.findById(postId);
     }
 
     @Transactional(readOnly = true)
-    public List<Post> findAll(Id<User, Long> userId) {
+    public List<Post> findAll(Id<User, Long> userId, /*추가로 필요한 인자들을 선언*/ long offset, int limit) {
         checkNotNull(userId, "userId must be provided.");
 
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(User.class, userId));
-        return postRepository.findAll(userId);
+        // TODO likesOfMe를 효율적으로 구하기 위해 변경 필요
+        return postRepository.findAll(userId, offset, limit);
     }
 
     private Post save(Post post) {

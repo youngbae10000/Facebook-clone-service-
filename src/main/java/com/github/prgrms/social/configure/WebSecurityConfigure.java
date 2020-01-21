@@ -1,5 +1,7 @@
 package com.github.prgrms.social.configure;
 
+import com.github.prgrms.social.model.commons.Id;
+import com.github.prgrms.social.model.user.User;
 import com.github.prgrms.social.security.*;
 import com.github.prgrms.social.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +21,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.apache.commons.lang3.math.NumberUtils.toLong;
 
 @Configuration
 @EnableWebSecurity
@@ -64,7 +72,14 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
 
     @Bean
     public ConnectionBasedVoter connectionBasedVoter() {
-        return new ConnectionBasedVoter();
+        Pattern pattern = Pattern.compile( "^/api/user/(\\d+)/post/.*$");
+        RequestMatcher requiresAuthorizationRequestMatcher = new RegexRequestMatcher(pattern.pattern(), null);
+        return new ConnectionBasedVoter(requiresAuthorizationRequestMatcher, (String url) -> {
+            /* url에서 targetId를 추출하기 위해 정규식 처리 */
+            Matcher matcher = pattern.matcher(url);
+            long id = matcher.find() ? toLong(matcher.group(1), -1) : -1;
+            return Id.of(User.class, id);
+        });
     }
 
     @Bean
@@ -91,6 +106,7 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
             .authorizeRequests()
+                .antMatchers("/api/_hcheck").permitAll()
                 .antMatchers("/api/auth").permitAll()
                 .antMatchers("/api/user/join").permitAll()
                 .antMatchers("/api/user/exists").permitAll()
@@ -106,7 +122,7 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) {
-        web.ignoring().antMatchers("/h2/**");
+        web.ignoring().antMatchers("/swagger-resources", "/webjars/**", "/templates/**", "/h2/**");
     }
 
 }
