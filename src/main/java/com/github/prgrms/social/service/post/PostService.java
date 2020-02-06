@@ -4,6 +4,7 @@ import com.github.prgrms.social.error.NotFoundException;
 import com.github.prgrms.social.model.commons.Id;
 import com.github.prgrms.social.model.post.Post;
 import com.github.prgrms.social.model.user.User;
+import com.github.prgrms.social.repository.post.PostLikeRepository;
 import com.github.prgrms.social.repository.post.PostRepository;
 import com.github.prgrms.social.repository.user.UserRepository;
 import org.springframework.stereotype.Service;
@@ -21,9 +22,12 @@ public class PostService {
 
     private final PostRepository postRepository;
 
-    public PostService(UserRepository userRepository, PostRepository postRepository) {
+    private final PostLikeRepository postLikeRepository;
+
+    public PostService(UserRepository userRepository, PostRepository postRepository, PostLikeRepository postLikeRepository) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
+        this.postLikeRepository = postLikeRepository;
     }
 
     @Transactional
@@ -38,26 +42,53 @@ public class PostService {
     }
 
     @Transactional
-    public Optional<Post> like(/*필요한 인자들을 선언*/) {
+    public Optional<Post> like(Id<User, Long> writerId, Id<User, Long> userId, Id<Post, Long> postId) {
         // TODO PostLikeRepository를 구현하고, 포스트 좋아요 서비스를 구현하세요.
-        return Optional.empty();
+        /*
+        Optional<Post> post = postRepository.findById(writerId, userId, postId);
+
+        if(!post.get().isLikesOfMe()) {
+            postLikeRepository.likesTableSave(userId, postId);
+            post.get().incrementAndGetLikes();
+            update(post.get());
+        }
+        return post;
+         */
+
+        return  postRepository.findById(writerId, userId, postId).map(post -> {
+            if(!post.isLikesOfMe()){
+                post.incrementAndGetLikes();
+                postLikeRepository.likesTableSave(userId, postId);
+                update(post);
+            }
+            return post;
+        });
     }
 
     @Transactional(readOnly = true)
-    public Optional<Post> findById(Id<Post, Long> postId /*추가로 필요한 인자들을 선언*/) {
-        checkNotNull(postId, "postId must be provided.");
-        // TODO likesOfMe를 효율적으로 구하기 위해 변경 필요
-        return postRepository.findById(postId);
-    }
+    public Optional<Post> findById(Id<User, Long> writerId, Id<User, Long> userId, Id<Post, Long> postId) {
 
-    @Transactional(readOnly = true)
-    public List<Post> findAll(Id<User, Long> userId, /*추가로 필요한 인자들을 선언*/ long offset, int limit) {
+        checkNotNull(writerId, "writerId must be provided.");
         checkNotNull(userId, "userId must be provided.");
+        checkNotNull(postId, "postId must be provided.");
 
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(User.class, userId));
         // TODO likesOfMe를 효율적으로 구하기 위해 변경 필요
-        return postRepository.findAll(userId, offset, limit);
+        return postRepository.findById(writerId, userId, postId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Post> findAll(Id<User, Long> userId, Id<User, Long> writerId, long offset, int limit) {
+
+        checkNotNull(userId, "userId must be provided.");
+        checkNotNull(writerId, "writerId must be provided.");
+
+        if(offset < 0)
+            offset = 0;
+        if(limit < 1 || limit > 5)
+            limit = 5;
+
+        // TODO likesOfMe를 효율적으로 구하기 위해 변경 필요
+        return postRepository.findAll(userId, writerId, offset, limit);
     }
 
     private Post save(Post post) {

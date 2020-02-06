@@ -29,6 +29,8 @@ class PostServiceTest {
 
     @Autowired private PostService postService;
 
+    private Id<User, Long> writerId;
+
     private Id<User, Long> userId;
 
     @BeforeAll
@@ -51,7 +53,7 @@ class PostServiceTest {
     @Test
     @Order(2)
     void 포스트를_수정한다() {
-        Post post = postService.findById(Id.of(Post.class, 1L)).orElse(null);
+        Post post = postService.findById( Id.of(User.class, 1L), Id.of(User.class, 1L), Id.of(Post.class, 1L)).orElse(null);
         assertThat(post, is(notNullValue()));
         String contents = randomAlphabetic(40);
         post.modify(contents);
@@ -63,7 +65,7 @@ class PostServiceTest {
     @Test
     @Order(3)
     void 포스트_목록을_조회한다() {
-        List<Post> posts = postService.findAll(userId, 0, 20);
+        List<Post> posts = postService.findAll(userId, writerId, 0, 20);
         assertThat(posts, is(notNullValue()));
         assertThat(posts.size(), is(4));
     }
