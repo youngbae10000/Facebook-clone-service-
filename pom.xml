@@ -21,7 +21,7 @@
         <springfox.swagger2.version>2.9.2</springfox.swagger2.version>
         <java.jwt.version>3.9.0</java.jwt.version>
         <guava.version>28.2-jre</guava.version>
-        <h2.version>1.4.199</h2.version>
+        <h2.version>2.2.220</h2.version>
         <log4jdbc.version>0.2.7</log4jdbc.version>
         <hikariCP.version>3.4.2</hikariCP.version>
         <commons.lang.version>3.9</commons.lang.version>
